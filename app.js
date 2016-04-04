@@ -5,7 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var routes = require('./routes/index');
-var users = require('./routes/users');
+
 
 var app = express();
 
@@ -13,8 +13,6 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -22,7 +20,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
-app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -34,8 +31,6 @@ app.use(function(req, res, next) {
 
 
 var Twitter = require('twitter');
-
-
 
 var client = new Twitter({
   "consumer_key": process.env.CONSUMER_KEY,
@@ -56,7 +51,7 @@ function twitter_stream(client_stream) {
 
     stream.on('data', function (tweet) {
       if(tweet.user["id"] == 25073877) {
-        get_trump_tweets(client);
+        create_trump_remix_tweet(client);
       }
     });
 
@@ -109,7 +104,7 @@ function create_tweet(part_one, part_two, part_three){
 }
 
 //This fetches Trump tweets from a random batch of 200 since he announced he was running for President.
-function get_trump_tweets(client_rest_search) {
+function create_trump_remix_tweet(client_rest_search) {
   //the min value is based on the tweet that announced Donald Trump was running for President.
 
   var min_search = 610838591242137600;
@@ -137,6 +132,7 @@ function get_trump_tweets(client_rest_search) {
   });
 }
 
+//This puts a new tweet from the Trumpbot onto twitter.
 function post_tweet(new_tweet) {
   client.post('statuses/update', {status: new_tweet}, function (error, tweet, response) {
     if (!error) {
@@ -174,5 +170,11 @@ app.use(function(err, req, res, next) {
   });
 });
 
+//This starts the app on port 3010 (or whatever is assigned by the host. This is used to display the webpage for the Twitterbot.
+app.listen(process.env.PORT || 3010, function(){
+  console.log('Donald Trump Tweet Remix app listening on port 3010 (or port assigned by host).');
+});
+
 twitter_stream(client);
+
 module.exports = app;
