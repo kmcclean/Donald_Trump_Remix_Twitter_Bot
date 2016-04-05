@@ -32,12 +32,14 @@ app.use(function(req, res, next) {
 
 var Twitter = require('twitter');
 
+//This is where everything that is used by the twitter account is based.
 var client = new Twitter({
   "consumer_key": process.env.CONSUMER_KEY,
   "consumer_secret": process.env.CONSUMER_SECRET,
   "access_token_key": process.env.ACCESS_TOKEN_KEY,
   "access_token_secret": process.env.ACCESS_TOKEN_SECRET
 });
+
 
 /**
  * Stream statuses filtered by keyword
@@ -77,21 +79,32 @@ function clean_tweets(tweet_array){
 
 //This gets the specified section of the tweets, breaking them apart into individual sentences that can later be used to create a new tweet.
 function get_part_of_tweet(tweets, section, end_of_phrase) {
-  var tweet_parts_array = [];
-  for (var i = 0; i < tweets.length; i++) {
-    var tweet_text = tweets[i]['text'];
-    var split_text_array = tweet_text.split(/[\.\?\!]/);
-    split_text_array = clean_tweets(split_text_array);
-    if (split_text_array.length > section) {
-      var tweet_section = split_text_array.slice(section);
-      tweet_section = tweet_section.slice(-2, -1);
-      tweet_section = tweet_section + end_of_phrase;
-      if (tweet_section.length > 1) {
-        tweet_parts_array.push(tweet_section);
+
+  //This is in a try-catch block because it will occasionally produce a TypeError for an unknown reason. This is to guard against that crashing the entire program.
+  try{
+    var tweet_parts_array = [];
+
+    for (var i = 0; i < tweets.length; i++) {
+      var tweet_text = tweets[i]['text'];
+      var split_text_array = tweet_text.split(/[\.\?\!]/);
+      split_text_array = clean_tweets(split_text_array);
+      if (split_text_array.length > section) {
+        var tweet_section = split_text_array.slice(section);
+        tweet_section = tweet_section.slice(-2, -1);
+        tweet_section = tweet_section + end_of_phrase;
+        if (tweet_section.length > 1) {
+          tweet_parts_array.push(tweet_section);
+        }
       }
     }
+
+    return tweet_parts_array;
   }
-  return tweet_parts_array;
+  catch (err){
+    return tweet_parts_array;
+  }
+
+
 }
 
 //This takes the lists of possible tweet sections and randomly chooses one from each of them.
@@ -105,15 +118,9 @@ function create_tweet(part_one, part_two, part_three){
 
 //This fetches Trump tweets from a random batch of 200 since he announced he was running for President.
 function create_trump_remix_tweet(client_rest_search) {
-  //the min value is based on the tweet that announced Donald Trump was running for President.
 
-  var min_search = 610838591242137600;
-  var max_search = 716020373045841920;
-  var search_value = random_number_generator(max_search, min_search);
-
-
-  //This gets the tweets. The random number is used to find a set of 200 tweets, and to make sure that they are different
-  client_rest_search.get('statuses/user_timeline', {user_id: "25073877", since_id: search_value, count : 200}, function (error, tweets, response) {
+    //This gets the Donald Trump's last 200 tweets.
+  client_rest_search.get('statuses/user_timeline', {user_id: "25073877", count : 200}, function (error, tweets, response) {
 
     //This breaks Trump's tweets into indiviual sections.
     var tweet_part_one_array = get_part_of_tweet(tweets, 0, ".");
@@ -176,5 +183,4 @@ app.listen(process.env.PORT || 3010, function(){
 });
 
 twitter_stream(client);
-
 module.exports = app;
