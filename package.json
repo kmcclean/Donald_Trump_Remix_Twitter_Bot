@@ -14,5 +14,13 @@
     "morgan": "~1.6.1",
     "serve-favicon": "~2.3.0",
     "twitter" : "~2.14.12"
-  }
+  },
+  "engines": {
+    "npm": "2.14.12",
+    "node": "4.2.2"
+  },
+  "description" : "A Twitter bot designed to tweet whenever Donald Trump does.",
+  "main" : "app.js",
+  "author" : "Kevin McClean"
+
 }
